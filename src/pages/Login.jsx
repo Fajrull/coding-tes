@@ -1,8 +1,8 @@
 import React from "react";
-import { useForm } from "react-hook-form";
-import Login from "../../services/Auth";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { Login } from "../services/Auth";
+import { useForm } from "react-hook-form";
 
 const LoginComponent = () => {
   const navigate = useNavigate();
@@ -14,24 +14,22 @@ const LoginComponent = () => {
 
   const onSubmit = async (data) => {
     const response = await Login(data);
-    if (response.success) {
-      const { access_token, expires_at } = response.data.data;
-      document.cookie = `access_token=${access_token}; expires=${new Date(
-        expires_at
-      ).toUTCString()}; path=/; Secure; SameSite=Strict;`;
+
+    if (response.statusCode === 2110 && response.data.token) {
+      localStorage.setItem("token", response.data.token);
 
       Swal.fire({
         title: "Login Successful",
-        text: response.message,
+        text: response.message || "Login berhasil.",
         icon: "success",
         confirmButtonText: "OK",
       }).then(() => {
-        navigate("/dashboard");
+        navigate("/todo");
       });
     } else {
       Swal.fire({
         title: "Login Failed",
-        text: response.message,
+        text: response.message || "Login gagal. Silakan coba lagi.",
         icon: "error",
         confirmButtonText: "Try Again",
       });
@@ -47,22 +45,18 @@ const LoginComponent = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col h-[350px] w-[500px] bg-[#f8f8f8] p-10 border border-[#a7a7a7] rounded-lg"
       >
-        <label htmlFor="email" className="text-[#a7a7a7] font-bold my-3">
-          Email
+        <label htmlFor="username" className="text-[#a7a7a7] font-bold my-3">
+          Username
         </label>
         <input
-          type="email"
-          {...register("email", {
-            required: "Email is required",
-            pattern: {
-              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-              message: "Invalid email address",
-            },
+          type="username"
+          {...register("username", {
+            required: "username is required",
           })}
           className="border border-[#a7a7a7] rounded-md w-[400px] h-[30px] p-3"
         />
-        {errors.email && (
-          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        {errors.username && (
+          <p className="text-red-500 text-sm">{errors.username.message}</p>
         )}
 
         <label htmlFor="password" className="text-[#a7a7a7] font-bold my-3">
